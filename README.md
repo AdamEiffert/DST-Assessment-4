@@ -5,7 +5,7 @@
 * Adam Eiffert
 * Chentian Zhao
 
-This project has been split 50:50:0 with respect to Adam:Mohammed:Oliver
+This project has been split 50:50 with respect to Adam:Chentian
 
 ## Reading order and requirements
 
