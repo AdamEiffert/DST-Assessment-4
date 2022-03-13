@@ -19,11 +19,13 @@ def create_model(features,layers,activation):
     return model
     
 def train_model(train,test,model,num):
+    #separate the test and train datasets 
     train_X = train.drop(['normal','dos','u2r','r2l','probe'],axis=1)
     test_X = train.drop(['normal','dos','u2r','r2l','probe'],axis=1)
     train_Y = train.loc[:,['normal','dos','u2r','r2l','probe']]
     test_Y = train.loc[:,['normal','dos','u2r','r2l','probe']]
-    old_score = 0
+    old_score = 0 #used to track the AUC score of the last epoch
+    #initialise the model metrics
     test_score_acc=[]
     train_score_acc=[]
     test_score_auc=[]
@@ -35,40 +37,43 @@ def train_model(train,test,model,num):
     test_r2l_mat=[]
     test_probe_mat=[]
     epoch = 0
-    while (epoch < 2) or (test_score_auc[epoch-1] > test_score_auc[epoch-2]):
-        model_time1 = time.perf_counter()
+    while (epoch < 2) or (test_score_auc[epoch-1] > test_score_auc[epoch-2]): #repeat until the test AUC score of the latest iteration is lower than the previous epoch
+        model_time1 = time.perf_counter() #check the time
         model.fit(train_X,train_Y,epochs=1,batch_size=128)
-        model_time2 = time.perf_counter()
-        model_time.append(model_time2 - model_time1)
-        yhat = model.predict(train_X)
-        yhat = yhat.round()
-        train_score_acc.append(accuracy_score(train_Y,yhat))
-        train_score_auc.append(roc_auc_score(train_Y,yhat))
-        yhat = model.predict(test_X)
-        yhat = yhat.round()
-        yhat1=[[] for _ in range(5)]
-        for i in range(len(yhat)):
+        model_time2 = time.perf_counter() #check the time
+        model_time.append(model_time2 - model_time1) #calculates the difference in the times to see how long the model took to train
+        yhat = model.predict(train_X) #predicts the classification of the train dataset
+        yhat = yhat.round() #round to classify the data
+        train_score_acc.append(accuracy_score(train_Y,yhat)) #calculate accuracy of the prediction
+        train_score_auc.append(roc_auc_score(train_Y,yhat)) #calculate AUC of the prediction
+        yhat = model.predict(test_X) #predicts the classification of the test dataset
+        yhat = yhat.round() #round to classify the data
+        yhat1=[[] for _ in range(5)] #create a matrix reformat the prediction
+        #reformat the model prediction so we can separate the attack types
+        for i in range(len(yhat)): 
             for j in range(5):
                 yhat1[j].append(yhat[i][j])
-        test_score_acc.append(accuracy_score(test_Y,yhat))
-        test_score_auc.append(roc_auc_score(test_Y,yhat))
+        test_score_acc.append(accuracy_score(test_Y,yhat)) #calculate accuracy of the prediction
+        test_score_auc.append(roc_auc_score(test_Y,yhat)) #calculate AUC of the prediction
+        #calculate the confusion matrix for each of the classifications
         test_norm_mat=confusion_matrix(test_Y['normal'],yhat1[0])
         test_dos_mat=confusion_matrix(test_Y['dos'],yhat1[1])
         test_u2r_mat=confusion_matrix(test_Y['u2r'],yhat1[2])
         test_r2l_mat=confusion_matrix(test_Y['r2l'],yhat1[3])
         test_probe_mat=confusion_matrix(test_Y['probe'],yhat1[4])
         epoch = epoch + 1
+    #manipulate the model times to useful metrics
     avg_time = statistics.mean(model_time[:-1])
     total_time=sum(model_time[:-1])
-    model.save('model'+str(num))
+    model.save('model'+str(num)) #save models for the extension
     return (test_score_acc[:-1], train_score_acc[:-1], test_score_auc[:-1], train_score_auc[:-1], avg_time, total_time, test_norm_mat[:-1], test_dos_mat[:-1], test_u2r_mat[:-1], test_r2l_mat[:-1], test_probe_mat[:-1])
     
 
 
 
 
-test = pd.read_csv("/user/work/zg18997/test1.csv").drop(columns = ['Unnamed: 0'])
-train = pd.read_csv("/user/work/zg18997/train1.csv").drop(columns = ['Unnamed: 0'])
+test = pd.read_csv("/user/work/zg18997/test2.csv").drop(columns = ['Unnamed: 0'])
+train = pd.read_csv("/user/work/zg18997/train2.csv").drop(columns = ['Unnamed: 0'])
 features = train.shape[1] -5
 
 model1_tanh = create_model(features,1,'tanh')
