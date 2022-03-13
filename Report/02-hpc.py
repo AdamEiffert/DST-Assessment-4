@@ -4,7 +4,7 @@ from sklearn.model_selection import KFold
 import numpy as np
 
 
-df = pd.read_csv("~/zg18997/kddcup1.csv").drop(columns = ['Unnamed: 0'])
+df = pd.read_csv("~/zg18997/kddcup.csv").drop(columns = ['Unnamed: 0'])
 num_feature =[]
 for col in df:
     if (df[col].dtypes == 'float64') or (df[col].dtypes == 'int64'):
@@ -57,8 +57,8 @@ kfsplit=kf.split(df)
 trainfolds,testfold=next(kfsplit) 
 data=df.loc[trainfolds]
 testdata=df.loc[testfold]
-data.to_csv('~/zg18997/train2.csv')
-testdata.to_csv('~/zg18997/test2.csv')
+data.to_csv('~/zg18997/train1.csv')s
+testdata.to_csv('~/zg18997/test1.csv')
         
         
 
